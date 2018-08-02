@@ -4,10 +4,10 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+                <title>SQL Performance Explained</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/theme/white.css">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -22,12 +22,152 @@
 		</script>
 	</head>
 	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+          <div class="reveal">
+            <div class="slides">
+              <section data-markdown>
+                # Indexes
+
+                ![cover](./sql-performance-explained-cover.png "Cover")
+              </section>
+
+              <section data-markdown>
+                # Overview
+                - What is the purpose and structure of an index?
+                - How does an index work?
+                - Why are my queries slow?
+                - How do I improve my performance? (Live Demo)
+              </section>
+
+              <section data-markdown>
+                ### What is the purpose of an index?
+
+                ![mess](./mess.jpeg "mess")
+              </section>
+              <!--
+                - w/o an index data in just stored in an unorganized heap
+                - a DB index, just like an index to a book, tell you where to
+                quickly fine things in that heap
+              -->
+
+              <section data-markdown>
+                ### How in an index stored?
+
+                - Doubly linked list
+
+                ![list](./linked.png "list")
+              </section>
+              <!--
+                - Not actually stored sequentially because it would be too hard
+                to maintain when organizing data
+                - Instead stored as doubely linked list
+                - Just need to change pointers to the neighboring elements
+              -->
+
+              <section data-markdown>
+                ### B-tree
+
+                ![list](./tree.png "leaf nodes")
+              </section>
+              <!--
+                - *Balanced* (not binary)
+                - Same tree depth at every position
+                - Scales logrithimaly
+                - Depth less 5 even for more an 5 entries
+              -->
+
+              <section data-markdown>
+                ### Tree Traversal
+
+                `>= 57`
+
+                ![list](./57.png "leaf nodes")
+              </section>
+
+              <section data-markdown>
+                ### 3 Steps of Index Lookup
+                1. Tree Traversal
+                2. Following leaf-node chain
+                3. Fetching table data
+              </section>
+
+              <section data-markdown>
+                ### Why is my index slow?
+                1. Tree Traversal (Fast)
+                2. Following leaf-node chain (Slow)
+                3. Fetching table data (Slow)
+              </section>
+              <!--
+                # Why is my index slow?
+                - Its not slow because it is "degenerated", even if there is
+                extra physical space in you rebuild the index your unlikely to
+                change tree depth which is the real cause of slow tree treversal
+                - It is probably because you are creating the correct indexes
+                # Indexes are slow because they cause you to spend a lot of time
+                doing slow things
+              -->
+              <section data-markdown>
+                ### `EXPLAIN` `type`
+
+                1. `system`
+                2. `const`
+                3. `eq_ref`
+                4. `ref`
+                5. `range`
+                6. `index`
+                7. `all`
+              </section>
+
+              <!---
+                MYSQL refers to them a join types
+                Markus referes to them as access types becuse it descirbes who
+                the data is access
+              -->
+
+              <section data-markdown>
+                # Live Demo!
+              </section>
+              <!--
+                # See all indexs on a table:
+                SHOW INDEX FROM sched_walks;
+
+                # `const`
+                EXPLAIN SELECT * FROM sched_walks WHERE id=18000;
+
+                # `ref`
+                EXPLAIN SELECT * FROM sched_walks WHERE docent_id=38167;
+
+                # `range`
+                EXPLAIN SELECT id FROM sched_walks WHERE scheduled_for > NOW();
+
+                # `all`
+                EXPLAIN SELECT * FROM sched_walks WHERE d_acc=true;
+
+                # Using for perfomance improvements:
+                EXPLAIN SELECT * FROM users WHERE referral_code='CODE123';
+
+                # Add missing index
+                CREATE INDEX index_users_on_referral_code ON users (referral_code);
+                EXPLAIN SELECT * FROM users WHERE referral_code='CODE123';
+
+                # Add unique index
+                CREATE UNIQUE INDEX index_users_on_referral_code_unique ON users (referral_code);
+                EXPLAIN SELECT * FROM users WHERE referral_code='CODE123';
+
+                # Cleanup from demo
+                # DROP INDEX index_users_on_referral_code_unique ON users;
+                # DROP INDEX index_users_on_referral_code ON users;
+              -->
+              <section data-markdown>
+                # References
+
+                - SQL Perfomance Explained by Markys Winad
+                - https://use-the-index-luke.com
+                - https://dev.mysql.com/doc/internals/en/optimizer-determining-join-type.html
+                - https://dev.mysql.com/doc/refman/8.0/en/explain-output.html
+                - https://stackoverflow.com/questions/4508055/what-does-eq-ref-and-ref-types-mean-in-mysql-explain
+              </section>
+            </div>
+          </div>
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
